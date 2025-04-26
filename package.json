@@ -1,0 +1,49 @@
+{
+  "name": "inventario-electron",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "clean-build": "rmdir /s /q %LOCALAPPDATA%\\electron-builder\\Cache && npm run build"
+  },
+  "keywords": [],
+  "author": "Kevin Jara",
+  "license": "ISC",
+  "description": "Sistema de gestión de inventario y control de mermas para pymes - StockSeguro",
+  "devDependencies": {
+    "electron": "^25.1.4",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "@electron/remote": "^2.1.2",
+    "xlsx": "^0.18.5"
+  },
+  "build": {
+    "appId": "com.stockseguro.app",
+    "productName": "StockSeguro",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "StockSeguro"
+    }
+  }
+}

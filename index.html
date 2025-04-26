@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>StockSeguro - Gestión de Inventario</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center;">
+        <img src="assets/sTOCKsEGURO1.png" alt="Logo StockSeguro" style="width: 120px; margin-right: 15px;">
+        <h1 style="margin: 0;">Gestión de Inventario</h1>
+      </div>
+      <button onclick="cerrarSesion()" style="background-color: red; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">
+        Cerrar Sesión
+      </button>
+    </div>
+
+    <!-- Formulario Productos -->
+    <form @submit.prevent="agregarProducto" class="formulario">
+
+      <input v-model="nuevoProducto.id"
+             @input="autocompletarProducto"
+             :readonly="productoBloqueado"
+             placeholder="ID o Nombre Producto" required>
+
+      <input v-model="nuevoProducto.categoria" placeholder="Categoría" required readonly>
+      <input v-model="nuevoProducto.precioUnitario" type="number" placeholder="Precio Unitario" required readonly>
+      <input v-model="nuevoProducto.precioCaja30" type="number" placeholder="Precio Caja x30" required readonly>
+      <input v-model.number="nuevoProducto.stock" type="number" placeholder="Stock" required>
+      <input v-model.number="nuevoProducto.stockMinimo" type="number" placeholder="Stock Mínimo" required>
+
+      <button>Agregar Producto</button>
+
+      <button type="button" @click="borrarCamposProducto" style="margin-top: 10px; background-color: grey; color: white;">
+        Borrar Campos
+      </button>
+
+    </form>
+
+    <!-- Botones Extra -->
+    <div style="margin-top: 10px;">
+      <button @click="seleccionarRuta" class="boton-exportar" style="margin-right: 10px;">📁 Seleccionar Carpeta</button>
+      <button @click="exportarExcel" class="boton-exportar">📤 Exportar a Excel</button>
+    </div>
+
+    <p v-if="carpetaGuardado" style="font-style: italic; color: gray;">📂 Carpeta actual: {{ carpetaGuardado }}</p>
+
+    <!-- Lista de Productos -->
+    <div v-for="(producto, index) in productos" :key="index"
+         :class="['producto-card', { 'bajo-stock': producto.stock <= producto.stockMinimo }]">
+      <div class="producto-info">
+        <strong>{{ producto.nombre || producto.id }}</strong>
+        Categoría: {{ producto.categoria }} |
+        Precio Unitario: ${{ producto.precioUnitario }} |
+        Precio Caja: ${{ producto.precioCaja30 }} |
+        Stock: {{ producto.stock }} |
+        Mínimo: {{ producto.stockMinimo }}
+        <div v-if="producto.stock <= producto.stockMinimo" class="producto-alerta">⚠️ Bajo stock</div>
+      </div>
+      <button @click="eliminarProducto(index)">Eliminar</button>
+    </div>
+
+  </div>
+
+<script src="app.js" type="module"></script>
+
+<script>
+  const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+  if (!usuarioLogueado) {
+    window.location.href = 'login.html';
+  } else {
+    const usuario = JSON.parse(usuarioLogueado);
+    const titulo = document.querySelector('h1');
+    titulo.textContent += ` - Bienvenido: ${usuario.nombre}`;
+  }
+
+  function cerrarSesion() {
+    localStorage.removeItem('usuarioLogueado');
+    window.location.href = 'login.html';
+  }
+</script>
+
+</body>
+</html>
