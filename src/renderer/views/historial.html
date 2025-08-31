@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>StockSeguro - Historial</title>
+  <link rel="stylesheet" href="../styles/style.css" />
+  <style>
+  /* Modal de trabajador — look StockSeguro (blanco + verde claro) */
+  .mod-profile{
+    max-width:720px;
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid #e5e7eb;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    background:#fff;
+  }
+  .mod-profile .modal-header{ display:none; } /* ocultamos el header estándar */
+
+  .profile-header{
+    position:relative;
+    background:#e8fbef;
+    border-bottom:1px solid #b7f0c7;
+    padding:38px 24px 58px;
+    text-align:center;
+  }
+  .avatar-hero{
+    position:absolute; left:50%; bottom:-48px; transform:translateX(-50%);
+    width:96px; height:96px; border-radius:999px; overflow:hidden;
+    border:6px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,.12);
+  }
+  .avatar-hero img{ width:100%; height:100%; object-fit:cover; background:#f3f4f6; }
+
+  .profile-name{ margin:0; font-size:22px; font-weight:900; color:#11693a; }
+  .profile-sub{ margin-top:6px; color:#11693a; opacity:.8; font-weight:700; }
+
+  .profile-body{
+    padding:72px 22px 22px; /* 72 para dejar espacio al avatar flotante */
+    display:grid; gap:14px;
+  }
+  .field{ display:grid; grid-template-columns:220px 1fr; align-items:center; gap:10px; }
+  .label{ color:#6b7280; font-size:14px; }
+  .value{ font-weight:800; }
+
+  .pin-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pin-input{
+    padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; background:#fff; width:180px;
+  }
+  .link-email { text-decoration: underline; color: #11693a; }
+  .link-email:hover { opacity: .85; }
+
+  /* Mantener overlay/cierre existentes del proyecto */
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- fila superior -->
+    <div class="top-row">
+      <button class="btn-logout-small" onclick="volver()" title="Volver">← Volver</button>
+    </div>
+
+    <!-- encabezado -->
+    <header class="brand-row">
+      <div class="app-brand">
+        <img src="../assets/sTOCKsEGURO.png" alt="Logo StockSeguro" />
+        <h1>Historial de Operaciones</h1>
+      </div>
+    </header>
+
+    <div class="welcome-row">
+      <div id="bienvenida" class="welcome-pill">Acceso concedido</div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="toolbar">
+      <button type="button" class="boton-exportar" onclick="exportarHistorial()">📤 Exportar historial a Excel</button>
+      <button type="button" class="btn-clear" onclick="borrarHistorial()">Borrar historial</button>
+      <button type="button" class="boton-exportar" onclick="abrirModalTrabajador()">👤 Ver trabajador</button>
+    </div>
+
+    <!-- Tabla -->
+    <section class="lista-row">
+      <table class="historial-table" style="width:100%; border-collapse:collapse; background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+        <thead>
+          <tr style="background:#f9fafb;">
+            <th style="text-align:left; padding:10px 12px;">Fecha/Hora</th>
+            <th style="text-align:left; padding:10px 12px;">Operación</th>
+            <th style="text-align:left; padding:10px 12px;">Detalle</th>
+            <th style="text-align:left; padding:10px 12px;">Responsable</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-historial"></tbody>
+      </table>
+      <p id="vacio" class="muted" style="margin-top:10px; display:none;">Sin operaciones registradas.</p>
+    </section>
+  </div>
+
+  <!-- Modal de DATOS DEL TRABAJADOR (avatar arriba) -->
+  <div id="modal-trabajador" class="modal-overlay" style="display:none;" onclick="cerrarModalTrabajador(event)">
+    <div class="modal-card mod-profile" onclick="event.stopPropagation()">
+
+      <!-- Cabecera personalizada con color y avatar -->
+      <div class="profile-header">
+        <h2 class="profile-name" id="m-nombre">—</h2>
+        <div class="profile-sub" id="m-rut">—</div>
+        <div class="avatar-hero">
+          <img id="avatarHero" alt="Avatar"/>
+        </div>
+        <!-- Botón cerrar en esquina superior derecha -->
+        <button type="button" class="modal-close" onclick="cerrarModalTrabajador()" title="Cerrar">✖</button>
+      </div>
+
+      <!-- Cuerpo con datos -->
+      <div class="profile-body">
+        <div class="field"><div class="label">Último ingreso:</div><div class="value" id="m-ultimo">—</div></div>
+        <div class="field"><div class="label">Empresa asociada:</div><div class="value" id="m-empresa">—</div></div>
+        <div class="field">
+          <div class="label">Correo (Gmail):</div>
+          <div class="value">
+            <a id="m-email" class="link-email" href="#" target="_blank" rel="noopener">—</a>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Contraseña de acceso (PIN):</div>
+          <div class="pin-row">
+            <input id="m-pin" class="pin-input" type="password" readonly value=""/>
+            <button class="btn-choose" onclick="togglePin()">👁️ Mostrar</button>
+          </div>
+        </div>
+        <div class="field"><div class="label">Número de teléfono:</div><div class="value" id="m-fono">—</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Guardia: exige sesión y rol admin
+    (function () {
+      const u = JSON.parse(localStorage.getItem('usuarioLogueado') || 'null');
+      if (!u) { window.location.href = 'login.html'; return; }
+      if (u.rol !== 'admin') { alert('Solo administradores.'); window.location.href = 'principal.html'; return; }
+      document.getElementById('bienvenida').textContent = `Bienvenido (admin): ${u.nombre}`;
+    })();
+
+    function volver(){ window.location.href = 'principal.html'; }
+
+    function cargarEventos(){
+      try { return JSON.parse(localStorage.getItem('eventos') || '[]'); }
+      catch { return []; }
+    }
+    function guardarEventos(list){
+      localStorage.setItem('eventos', JSON.stringify(list));
+    }
+
+    function render(){
+      const tbody = document.getElementById('tbody-historial');
+      const vacio = document.getElementById('vacio');
+      const eventos = cargarEventos().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+
+      tbody.innerHTML = '';
+      if (!eventos.length){ vacio.style.display = 'block'; return; }
+      vacio.style.display = 'none';
+
+      for (const e of eventos){
+        const tr = document.createElement('tr');
+        const fecha = new Date(e.timestamp).toLocaleString();
+        tr.innerHTML = `
+          <td style="padding:10px 12px; border-bottom:1px solid #eee;">${fecha}</td>
+          <td style="padding:10px 12px; border-bottom:1px solid #eee; font-weight:700;">${e.tipo || ''}</td>
+          <td style="padding:10px 12px; border-bottom:1px solid #eee;">${e.detalle || ''}</td>
+          <td style="padding:10px 12px; border-bottom:1px solid #eee;">${e.usuario?.nombre || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Exportar historial a Excel (a Escritorio)
+    function exportarHistorial(){
+      try {
+        const XLSX = require('xlsx');
+        const path = require('path');
+        const os = require('os');
+
+        const eventos = cargarEventos().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+        if (!eventos.length){ alert('No hay eventos que exportar.'); return; }
+
+        const data = eventos.map(e => ({
+          'Fecha/Hora': new Date(e.timestamp).toLocaleString(),
+          'Operación': e.tipo || '',
+          'Detalle': e.detalle || '',
+          'Responsable': e.usuario?.nombre || ''
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(data);
+        ws['!cols'] = [{wch:20},{wch:20},{wch:60},{wch:28}];
+        XLSX.utils.book_append_sheet(wb, ws, 'Historial');
+
+        const file = path.join(os.homedir(), 'Desktop', `Historial_StockSeguro_${new Date().toISOString().slice(0,10)}.xlsx`);
+        XLSX.writeFile(wb, file);
+        alert(`✅ Historial exportado en:\n${file}`);
+      } catch (err){
+        console.error(err);
+        alert('No se pudo exportar el historial.');
+      }
+    }
+
+    function borrarHistorial(){
+      if (!confirm('¿Borrar todo el historial de operaciones?')) return;
+      guardarEventos([]);
+      render();
+    }
+
+    // ===== Modal Trabajador =====
+    function abrirModalTrabajador(){
+      const modal = document.getElementById('modal-trabajador');
+      const u = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
+      const ultimo = localStorage.getItem('ultimoIngresoSistema');
+
+      // avatar: intenta por rut, si no existe usa un placeholder embebido
+      const avatar = document.getElementById('avatarHero');
+      const candidato = `../assets/avatar/${(u.rut || '').replaceAll('.','').replaceAll('-','')}.jpg`;
+      const placeholder = "data:image/svg+xml;utf8," +
+        "<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'>" +
+        "<circle cx='48' cy='32' r='18' fill='%23e5e7eb'/>" +
+        "<rect x='18' y='56' width='60' height='28' rx='14' fill='%23e5e7eb'/></svg>";
+      avatar.onerror = () => { avatar.src = placeholder; };
+      avatar.src = candidato;
+
+      document.getElementById('m-nombre').textContent  = u.nombre || '—';
+      document.getElementById('m-ultimo').textContent  = ultimo ? new Date(ultimo).toLocaleString() : '—';
+      document.getElementById('m-rut').textContent     = u.rut || '—';
+      document.getElementById('m-empresa').textContent = u.empresa || '—';
+      document.getElementById('m-pin').value           = u.pin || '';
+      document.getElementById('m-fono').textContent    = u.telefono || '—';
+
+      const emailEl = document.getElementById('m-email');
+      const email = u.email || u.gmail || u.correo || '';
+      if (email) {
+        emailEl.textContent = email;
+        emailEl.href = `mailto:${email}`;
+      } else {
+        emailEl.textContent = '—';
+        emailEl.removeAttribute('href');
+      }
+
+      modal.style.display = 'grid';
+    }
+    function cerrarModalTrabajador(ev){
+      if (ev && ev.target && ev.currentTarget !== ev.target) return;
+      document.getElementById('modal-trabajador').style.display = 'none';
+      // volver a ocultar el PIN
+      const pin = document.getElementById('m-pin');
+      pin.type = 'password';
+    }
+    function togglePin(){
+      const pin = document.getElementById('m-pin');
+      pin.type = (pin.type === 'password') ? 'text' : 'password';
+    }
+
+    // Exponer funciones al DOM
+    window.exportarHistorial = exportarHistorial;
+    window.borrarHistorial   = borrarHistorial;
+    window.abrirModalTrabajador = abrirModalTrabajador;
+    window.cerrarModalTrabajador = cerrarModalTrabajador;
+    window.togglePin = togglePin;
+
+    // Pintar tabla al cargar
+    render();
+  </script>
+</body>
+</html>

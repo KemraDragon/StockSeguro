@@ -1,0 +1,501 @@
+/* ===================== */
+/*  Estilos de la APP   */
+/* ===================== */
+:root{
+  --app-bg:#f4f6f8;
+  --app-text:#222;
+  --app-muted:#6b7280;
+  --app-border:#d1d5db;
+  --app-card:#fff;
+
+  --app-primary:#16a34a;
+  --app-primary-2:#22c55e;
+  --app-primary-hover:#148a3f;
+
+  --app-danger:#dc2626;
+  --app-danger-hover:#b91c1c;
+
+  --app-focus-ring:rgba(37,99,235,.15);
+  --app-ring:#2563eb;
+}
+
+body:not(.login-body){
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  padding:32px;
+  background-color:var(--app-bg);
+  color:var(--app-text);
+}
+
+body:not(.login-body) h1{
+  color:var(--app-text);
+  margin:0 0 18px 0;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+
+/* ---------- Formulario ---------- */
+form.formulario{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+body:not(.login-body) input{
+  flex:1 1 200px;
+  padding:12px 14px;
+  border:1px solid var(--app-border);
+  border-radius:10px;
+  background:#fff;
+  font-size:15px;
+  transition:border-color .18s, box-shadow .18s;
+}
+body:not(.login-body) input::placeholder{color:#9ca3af;}
+body:not(.login-body) input:focus{
+  border-color:var(--app-ring);
+  box-shadow:0 0 0 3px var(--app-focus-ring);
+  outline:none;
+}
+
+/* Botón primario */
+form.formulario button[type="submit"]{
+  background:linear-gradient(135deg,var(--app-primary-2),var(--app-primary));
+  color:#fff;
+  padding:12px 16px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:800;
+  letter-spacing:.25px;
+  box-shadow:0 8px 18px rgba(34,197,94,.22);
+  transition:filter .18s, transform .06s;
+}
+form.formulario button[type="submit"]:hover{filter:brightness(1.03);}
+form.formulario button[type="submit"]:active{transform:translateY(1px);}
+
+/* Botón secundario */
+form.formulario button[type="button"]{
+  background:#6b7280 !important;
+  color:#fff !important;
+  padding:12px 16px !important;
+  border:none !important;
+  border-radius:12px !important;
+  cursor:pointer !important;
+  font-weight:700;
+  transition:filter .18s, transform .06s;
+}
+form.formulario button[type="button"]:hover{filter:brightness(1.03);}
+form.formulario button[type="button"]:active{transform:translateY(1px);}
+
+/* ---------- Botones extra ---------- */
+.boton-exportar{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 14px;
+  border:1px solid var(--app-border);
+  background:#fff;
+  color:#111827;
+  border-radius:10px;
+  cursor:pointer;
+  transition:background-color .18s, border-color .18s, transform .06s;
+  margin-bottom:14px;
+}
+.boton-exportar:hover{background:#f9fafb;border-color:#cbd5e1;}
+.boton-exportar:active{transform:translateY(1px);}
+
+/* ---------- Cards ---------- */
+.producto-card{
+  background-color:var(--app-card);
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.producto-info{display:grid;gap:4px;}
+.producto-info strong{font-size:1.05rem;}
+.bajo-stock{background:#fff7f7;border-color:#fecaca;box-shadow:0 2px 8px rgba(220,38,38,.06);}
+.producto-alerta{
+  display:inline-block;margin-top:6px;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;
+  border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700;
+}
+.producto-card>button{
+  background:var(--app-danger);color:#fff;padding:10px 14px;border:none;border-radius:10px;cursor:pointer;font-weight:700;
+  transition:background-color .18s, transform .06s, filter .18s;
+}
+.producto-card>button:hover{background:var(--app-danger-hover);filter:brightness(1.03);}
+.producto-card>button:active{transform:translateY(1px);}
+
+/* ===== Shell & Header ===== */
+.app-shell{max-width:1200px;margin:0 auto;}
+.app-header{
+  display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;margin-bottom:16px;
+}
+.app-brand{display:flex;align-items:center;gap:14px;}
+.app-brand img{width:86px;height:86px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.06));}
+.app-title{display:flex;flex-direction:column;gap:2px;}
+.app-title h1{margin:0;font-size:clamp(22px,2.4vw,32px);line-height:1.2;font-weight:800;color:var(--app-text);}
+.app-subtitle{color:var(--app-muted);font-size:14px;}
+.btn-logout{
+  background:#ef4444;color:#fff;border:0;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 18px rgba(239,68,68,.18);transition:filter .18s, transform .06s;
+}
+.btn-logout:hover{filter:brightness(1.03);} .btn-logout:active{transform:translateY(1px);}
+
+/* ===== Formulario en grid ===== */
+.grid-form{display:grid !important;grid-template-columns:repeat(12,1fr);gap:12px;margin-bottom:12px;}
+.grid-form input{grid-column:span 4;}
+/* botón selector pequeño ocupa 2 columnas en desktop */
+.btn-choose{
+  grid-column:span 2;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 12px;border:none;border-radius:12px;background:#6b7280;color:#fff;font-weight:700;cursor:pointer;
+  transition:filter .18s, transform .06s;
+}
+.btn-choose .emoji{font-size:16px;}
+.btn-choose:hover{filter:brightness(1.03);} .btn-choose:active{transform:translateY(1px);}
+
+.grid-form .btn-submit{grid-column:span 2;}
+.grid-form .btn-clear{grid-column:span 2;justify-self:end;}
+
+.acciones-secundarias{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 16px;}
+
+@media (max-width:1100px){
+  .grid-form input{grid-column:span 6;}
+  .btn-choose{grid-column:span 6;}
+  .grid-form .btn-submit, .grid-form .btn-clear{grid-column:span 6;justify-self:stretch;}
+}
+@media (max-width:680px){
+  .app-header{grid-template-columns:1fr auto;}
+  .app-brand{grid-column:1 / -1;}
+  .grid-form input, .btn-choose, .grid-form .btn-submit, .grid-form .btn-clear{grid-column:1 / -1;}
+}
+
+/* ===================== */
+/*  Estilos del LOGIN    */
+/* ===================== */
+.login-body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, #eaf3ff 0%, transparent 60%),
+    radial-gradient(800px 400px at 120% 110%, #e6fff3 0%, transparent 60%),
+    #f4f6f8;
+  display: grid;
+  place-items: center;
+  color: #2b2b2b;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-wrapper { width: min(94vw, 440px); }
+
+.login-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08),
+              0 2px 8px rgba(0,0,0,0.05);
+  padding: 28px 26px;
+  display: grid;
+  gap: 14px;
+  animation: login-pop .25s ease-out both;
+}
+
+/* Evitar que los inputs o el ojito se salgan del ancho de la card */
+.login-card, .login-card * {
+  box-sizing: border-box;
+}
+
+@keyframes login-pop {
+  from { transform: translateY(6px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.login-logo {
+  width: clamp(160px, 45%, 220px);
+  margin: 6px auto 2px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.06));
+}
+
+.login-title {
+  margin: 2px 0 8px;
+  text-align: center;
+  font-size: clamp(20px, 2.7vw, 24px);
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.login-field { display: grid; gap: 6px; }
+
+/* Label del campo */
+.login-field label {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.login-field input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  background: #fff;
+}
+.login-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+}
+
+/* Ojito ahora junto al label */
+/* PIN con ojito dentro del input */
+.pin-wrapper {
+  position: relative;
+  width: 100%;   /* <- obliga al wrapper a ocupar el ancho de la card */
+}
+
+.pin-wrapper input {
+  width: 100%;   /* <- asegura que el input se quede dentro de la card */
+  padding-right: 44px;
+}
+
+.pin-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: #555;
+}
+.pin-toggle:hover { color: #111; }
+
+
+/* Botón verde principal */
+.login-button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 0;
+  cursor: pointer;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  font-weight: 700;
+  transition: transform .06s ease, filter .2s ease;
+  box-shadow: 0 8px 18px rgba(34, 197, 94, .22);
+}
+.login-button:hover { filter: brightness(1.03); }
+.login-button:active { transform: translateY(1px); }
+
+.login-error {
+  display: none;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.login-error.visible { display: block; }
+
+.login-footnote {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ===================== */
+/*  MODAL Selector       */
+/* ===================== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.5);
+  display:grid;place-items:center;z-index:50;padding:20px;
+  backdrop-filter:saturate(120%) blur(2px);
+}
+.modal-card{
+  width:min(900px,96vw);max-height:82vh;overflow:hidden;background:#fff;border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e5e7eb;
+}
+.modal-header h2{margin:0;font-size:18px;}
+.modal-close{
+  border:none;background:#e5e7eb;color:#111827;border-radius:8px;padding:6px 10px;cursor:pointer;
+}
+.modal-close:hover{background:#d1d5db;}
+
+.modal-search{
+  margin:12px 16px;padding:12px 14px;border:1px solid var(--app-border);border-radius:10px;font-size:15px;
+}
+.modal-search:focus{border-color:var(--app-ring);box-shadow:0 0 0 3px var(--app-focus-ring);outline:none;}
+
+.modal-list{
+  overflow:auto;padding:0 16px 16px;display:grid;gap:10px;
+}
+.modal-item{
+  text-align:left;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px 12px;cursor:pointer;
+  transition:background .15s, transform .06s, border-color .15s;
+}
+.modal-item:hover{background:#fff;border-color:#d1d5db;}
+.item-title{font-weight:700;}
+.item-title .muted{font-weight:500;color:#6b7280;}
+.item-sub{font-size:13px;color:#6b7280;margin-top:2px;}
+
+/* 🔹 Barra de búsqueda del modal */
+.modal input[type="text"],
+.modal .search-bar {
+  width: 100%;
+  padding: 8px 12px;   /* más delgada */
+  font-size: 14px;     /* más pequeña y estilizada */
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.modal input[type="text"]:focus,
+.modal .search-bar:focus {
+  border-color: var(--app-ring);
+  box-shadow: 0 0 0 2px var(--app-focus-ring);
+}
+/* ===== Layout por filas (según esquema de colores) ===== */
+.app-shell{max-width:1200px;margin:0 auto;padding:0 8px;}
+.top-row{display:flex;justify-content:flex-start;margin-bottom:6px;}
+.brand-row{display:flex;align-items:center;justify-content:flex-start;margin-bottom:8px;}
+.app-brand{display:flex;align-items:center;gap:12px;}
+.app-brand img{width:72px;height:72px;object-fit:contain;}
+.app-brand h1{margin:0;font-size:clamp(22px,2.2vw,30px);font-weight:800;color:#222;}
+.welcome-row{display:flex;justify-content:center;margin:4px 0 12px;}
+.welcome-pill{
+  background:#e8fbef;border:1px solid #b7f0c7;color:#11693a;
+  padding:8px 16px;border-radius:999px;font-weight:700;
+  box-shadow:0 2px 8px rgba(16,185,129,.12);
+}
+
+/* Botón cerrar sesión (rosa, pequeño, arriba-izquierda) */
+.btn-logout-small{
+  background:#fce7f3;color:#be185d;border:1px solid #f9a8d4;
+  padding:8px 10px;border-radius:12px;cursor:pointer;font-weight:800;
+  transition:filter .18s, transform .06s;
+}
+.btn-logout-small:hover{filter:brightness(1.03);}
+.btn-logout-small:active{transform:translateY(1px);}
+
+/* ===== Bloque Azul: formulario compacto (solo inputs) ===== */
+.grid-form.compact{
+  display:grid !important;
+  grid-template-columns:repeat(12,1fr);
+  column-gap:12px;
+  row-gap:10px;  /* inputs más juntos entre sí */
+  margin-bottom:14px;
+}
+.grid-form.compact input{grid-column:span 6;} /* 2 por fila */
+@media (max-width:800px){
+  .grid-form.compact input{grid-column:1 / -1;} /* full en móvil */
+}
+
+/* ===== Bloque Rojo: toolbar de botones ===== */
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:10px;
+  background:#fff5f5;border:1px solid #fecaca;border-radius:14px;
+  padding:10px;margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(220,38,38,.06);
+}
+
+/* Botones de la toolbar (reutiliza estilos existentes) */
+.btn-choose{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 14px;border:none;border-radius:12px;background:#6b7280;color:#fff;font-weight:700;cursor:pointer;
+}
+.btn-submit{
+  background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 18px rgba(34,197,94,.22);
+}
+.btn-clear{
+  background:#6b7280;color:#fff;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
+}
+.boton-exportar{
+  display:inline-flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--app-border);background:#fff;
+  color:#111827;border-radius:12px;cursor:pointer;
+}
+
+/* Ruta seleccionada */
+.ruta-actual{font-style:italic;color:var(--app-muted);margin:6px 0 12px;}
+
+/* ===== Lista Negra: tarjetas ocupando todo el ancho ===== */
+.lista-row .producto-card{width:100%;}
+
+/* ===== Imagen en tarjeta de producto ===== */
+.producto-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;               /* que ocupe todo el ancho disponible */
+}
+.producto-media { flex: 0 0 auto; }
+.producto-media img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 6px;
+}
+/* ============ Desktop amplio (>=1440px) ============ */
+@media (min-width: 1440px){
+  /* el contenedor crece */
+  .app-shell{ max-width: 1400px; }
+
+  /* tipografía e imagen de marca un poco mayores */
+  .app-brand img{ width:88px; height:88px; }
+  .app-brand h1{ font-size:32px; }
+
+  /* bienvenida un pelín más grande */
+  .welcome-pill{ padding:10px 18px; font-size:16px; }
+
+  /* inputs y botones con más área clicable */
+  .grid-form.compact input{ padding:14px 16px; font-size:16px; }
+  .btn-choose,
+  .btn-submit,
+  .btn-clear,
+  .boton-exportar{ padding:14px 16px; font-size:15px; }
+
+  /* cards de productos más amplias */
+  .producto-card{ padding:18px; }
+  .producto-info strong{ font-size:1.1rem; }
+
+  /* imágenes de producto un poco más grandes */
+  .producto-media img{ width:64px; height:64px; }
+
+  /* modal más ancho */
+  .modal-card{ width:min(1100px, 90vw); }
+}
+
+/* ============ Ultra-wide (>=1920px) ============ */
+@media (min-width: 1920px){
+  .app-shell{ max-width: 1600px; }
+  .app-brand h1{ font-size:36px; }
+  .producto-card{ padding:20px 22px; }
+  .producto-media img{ width:72px; height:72px; }
+  .modal-card{ width:min(1200px, 88vw); }
+}
+/* FIX: interacción dentro de los modales y formularios */
+.modal-overlay { z-index: 1000; }
+.modal-card    { position: relative; z-index: 1001; }
+.modal-card input,
+.grid-form input { pointer-events: auto; }

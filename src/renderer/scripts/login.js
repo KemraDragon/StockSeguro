@@ -6,7 +6,7 @@ function login(rut, pin) {
 
   if (usuarioEncontrado) {
     localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioEncontrado));
-    window.location.href = 'index.html'; // Avanzamos a index.html
+    window.location.href = 'principal.html'; 
   } else {
     const errorDiv = document.getElementById('error');
     errorDiv.textContent = 'RUT o PIN incorrectos.';

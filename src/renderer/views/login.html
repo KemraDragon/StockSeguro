@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StockSeguro – Ingreso</title>
+  <link rel="stylesheet" href="../styles/style.css" />
+</head>
+<body class="login-body">
+
+  <main class="login-wrapper">
+    <section class="login-card">
+      <img
+        src="../assets/sTOCKsEGURO.png"
+        alt="Logo StockSeguro"
+        class="login-logo"
+        loading="eager"
+      />
+
+      <h1 class="login-title">Ingreso al Sistema</h1>
+
+      <div id="error" class="login-error" aria-live="polite"></div>
+
+      <!-- RUT -->
+      <div class="login-field">
+        <label for="rut">RUT</label>
+        <input
+          type="text"
+          id="rut"
+          placeholder="12.345.678-9"
+          autocomplete="username"
+          inputmode="numeric"
+          oninput="formatearRut(this)"
+        />
+      </div>
+
+      <!-- PIN con label + ojito -->
+       <div class="login-field">
+      <label for="pin">PIN (4 dígitos)</label>
+      <div class="pin-wrapper">
+      <input
+      type="password"
+      id="pin"
+      placeholder="••••"
+      maxlength="4"
+      inputmode="numeric"
+      autocomplete="current-password"
+    />
+    <button class="pin-toggle" type="button" onclick="togglePin()" 
+            title="Mostrar/ocultar PIN">👁️</button>
+  </div>
+</div>
+
+
+      <button class="login-button" onclick="handleLogin()">Ingresar</button>
+
+      <p class="login-footnote">Seguridad para tu stock • StockSeguro</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { users } from '../data/BDTrabajadores.js';
+
+    function formatearRut(input) {
+      let valor = input.value.replace(/[^\dkK]/gi, '').toUpperCase();
+      if (valor.length > 10) valor = valor.slice(0, 10);
+      if (valor.length <= 1) { input.value = valor; return; }
+
+      const cuerpo = valor.slice(0, -1);
+      const dv = valor.slice(-1);
+
+      let formateado = '', i = 0;
+      for (let j = cuerpo.length - 1; j >= 0; j--) {
+        formateado = cuerpo[j] + formateado;
+        i++;
+        if (i % 3 === 0 && j !== 0) formateado = '.' + formateado;
+      }
+      input.value = formateado + '-' + dv;
+    }
+
+    function handleLogin() {
+      const rut = document.getElementById('rut').value.trim();
+      const pin = document.getElementById('pin').value.trim();
+      const errorDiv = document.getElementById('error');
+
+      errorDiv.textContent = '';
+      errorDiv.classList.remove('visible');
+
+      if (!rut || !pin) {
+        showError('Debe ingresar RUT y PIN.');
+        return;
+      }
+      if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+        showError('El PIN debe tener 4 dígitos numéricos.');
+        return;
+      }
+
+      const userFound = users.find(u => u.rut === rut && u.pin === pin);
+      if (userFound) {
+        localStorage.setItem('usuarioLogueado', JSON.stringify(userFound));
+        localStorage.setItem('ultimoIngresoSistema', new Date().toISOString());
+        window.location.href = 'principal.html';
+      } else {
+        showError('RUT o PIN incorrectos.');
+      }
+    }
+
+    function showError(msg) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = msg;
+      errorDiv.classList.add('visible');
+    }
+
+    function togglePin() {
+      const pin = document.getElementById('pin');
+      pin.type = pin.type === 'password' ? 'text' : 'password';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    window.formatearRut = formatearRut;
+    window.handleLogin = handleLogin;
+    window.togglePin = togglePin;
+  </script>
+</body>
+</html>

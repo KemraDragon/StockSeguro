@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>StockSeguro - Gestión de Inventario</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="../styles/style.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+
+    <!-- Fila 1: Cerrar sesión -->
+    <div class="top-row">
+      <button class="btn-logout-small" onclick="cerrarSesion()" title="Cerrar sesión">✖</button>
+    </div>
+
+    <!-- Brand -->
+    <header class="brand-row">
+      <div class="app-brand">
+        <img src="../assets/sTOCKsEGURO.png" alt="Logo StockSeguro" />
+        <h1>Gestión de Inventario</h1>
+      </div>
+    </header>
+
+    <!-- Bienvenida -->
+    <div class="welcome-row">
+      <div class="welcome-pill" id="textoBienvenida">Bienvenido</div>
+    </div>
+
+    <!-- Formulario (solo datos) -->
+    <form @submit.prevent="agregarProducto" class="formulario grid-form compact">
+      <input
+        ref="inputId"
+        v-model="nuevoProducto.id"
+        @input="autocompletarProducto"
+        :readonly="productoBloqueado"
+        placeholder="ID o Nombre Producto"
+        required
+      />
+      <input v-model="nuevoProducto.categoria" placeholder="Categoría" required readonly />
+      <input v-model="nuevoProducto.precioCaja30" type="number" placeholder="Precio Caja x30" required readonly />
+      <input v-model="nuevoProducto.precioUnitario" type="number" placeholder="Precio Unitario" required readonly />
+      <input v-model.number="nuevoProducto.stock" type="number" placeholder="Stock" required />
+      <input v-model.number="nuevoProducto.stockMinimo" type="number" placeholder="Stock Mínimo" required />
+    </form>
+
+    <!-- Toolbar de botones -->
+    <div class="toolbar">
+      <button type="button" class="btn-choose" @click="abrirSelector">📚 Elegir de lista</button>
+      <button type="button" class="btn-submit" @click="agregarProducto">Agregar Producto</button>
+      <button type="button" class="btn-clear"  @click="borrarCamposProducto">Borrar Campos</button>
+      <button type="button" class="boton-exportar" @click="seleccionarRuta">📁 Seleccionar Carpeta</button>
+      <button type="button" class="boton-exportar" @click="exportarExcel">📤 Exportar a Excel</button>
+      <!-- Botón nuevo: acceso al historial -->
+      <button
+        type="button"
+        class="boton-exportar"
+        @click="abrirModalHistorial"
+        v-if="esAdmin"
+      >
+        📜 Historial
+      </button>
+    </div>
+
+    <p v-if="rutaGuardado" class="ruta-actual">📂 Carpeta actual: {{ rutaGuardado }}</p>
+
+    <!-- Lista de productos -->
+    <section class="lista-row">
+      <div
+        v-for="(producto, index) in productos"
+        :key="index"
+        :class="['producto-card', { 'bajo-stock': producto.stock <= producto.stockMinimo }]"
+      >
+        <!-- Imagen + texto -->
+        <div class="producto-main">
+          <div class="producto-media">
+            <img
+              :src="imgProducto(producto)"
+              :alt="producto.nombre || producto.id"
+              @error="onImgError($event, producto)"
+              loading="lazy"
+            />
+          </div>
+          <div class="producto-info">
+            <strong>{{ producto.nombre || producto.id }}</strong>
+            Categoría: {{ producto.categoria }} |
+            Precio Unitario: ${{ producto.precioUnitario }} |
+            Precio Caja: ${{ producto.precioCaja30 }} |
+            Stock: {{ producto.stock }} |
+            Mínimo: {{ producto.stockMinimo }}
+            <div v-if="producto.stock <= producto.stockMinimo" class="producto-alerta">⚠️ Bajo stock</div>
+          </div>
+        </div>
+
+        <!-- Acción -->
+        <button @click="eliminarProducto(index)">Eliminar</button>
+      </div>
+    </section>
+
+    <!-- Modal selector de productos -->
+    <div v-if="selectorAbierto" class="modal-overlay" @click.self="cerrarSelector">
+      <div class="modal-card" @click.stop>
+        <div class="modal-header">
+          <h2>Seleccionar producto</h2>
+          <button type="button" class="modal-close" @click="cerrarSelector">✖</button>
+        </div>
+
+        <input
+          class="modal-search"
+          type="text"
+          v-model.trim="busqueda"
+          placeholder="Buscar por ID, nombre o categoría…"
+          autofocus
+        />
+
+        <div class="modal-list">
+          <button
+            v-for="p in productosFiltrados"
+            :key="p.id"
+            type="button"
+            class="modal-item"
+            @click="seleccionarDeCatalogo(p)"
+          >
+            <div class="item-title">{{ p.nombre }} <span class="muted">({{ p.id }})</span></div>
+            <div class="item-sub">
+              {{ p.categoria }} • ${{ p.precioUnitario }} (u) • ${{ p.precioCaja30 }} (caja x30) • Min: {{ p.stockMinimo }}
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de contraseña especial -->
+    <div v-if="modalHistorialAbierta" class="modal-overlay" @click.self="cerrarModalHistorial">
+      <div class="modal-card" style="max-width:420px" @click.stop>
+        <div class="modal-header">
+          <h2>Acceso a Historial</h2>
+          <button type="button" class="modal-close" @click="cerrarModalHistorial">✖</button>
+        </div>
+
+        <div style="padding:14px 16px; display:grid; gap:10px;">
+          <p class="item-sub">Ingrese la contraseña de administrador para continuar.</p>
+          <input
+            type="password"
+            v-model.trim="claveHistorial"
+            placeholder="Contraseña especial"
+            @keydown.enter="accederHistorial"
+            autofocus
+          />
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn-clear"  @click="cerrarModalHistorial">Cancelar</button>
+            <button class="btn-choose" @click="accederHistorial">Acceder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../scripts/app.js" type="module"></script>
+
+  <script>
+    const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+    if (!usuarioLogueado) {
+      window.location.href = 'login.html';
+    } else {
+      const { nombre, rol } = JSON.parse(usuarioLogueado);
+      document.getElementById('textoBienvenida').textContent = `Bienvenido: ${nombre}`;
+      localStorage.setItem('esAdmin', rol === 'admin');
+    }
+    function cerrarSesion() {
+      localStorage.removeItem('usuarioLogueado');
+      window.location.href = 'login.html';
+    }
+    window.cerrarSesion = cerrarSesion;
+  </script>
+</body>
+</html>
