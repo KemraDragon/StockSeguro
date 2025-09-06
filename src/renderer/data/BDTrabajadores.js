@@ -10,11 +10,11 @@ export const users = [
   },
   {
     rut: '22.222.222-2',
-    pin: '5678',
+    pin: '1234',
     nombre: 'Carlos Torres',
     rol: 'trabajador',
     empresa: 'StockSeguro SpA',
     telefono: '+56 9 8765 4321',
-    email: 'JhonDoe@gmail.com'
+    email: 'CarlosTorres@gmail.com'
   }
 ];
