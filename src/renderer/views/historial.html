@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <title>StockSeguro - Historial</title>
   <link rel="stylesheet" href="../styles/style.css" />
+
   <style>
-  /* Modal de trabajador — look StockSeguro (blanco + verde claro) */
+  /* ===== Modal de trabajador — look StockSeguro (blanco + verde claro) ===== */
   .mod-profile{
     max-width:720px;
     border-radius:18px;
@@ -47,7 +48,64 @@
   }
   .link-email { text-decoration: underline; color: #11693a; }
   .link-email:hover { opacity: .85; }
+
+  /* ===== Popover listado de trabajadores (centrado) ===== */
+  .pop-trab { position: relative; display:inline-block; }
+
+  .pop-panel{
+    position:absolute;
+    top:48px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1000;
+    min-width:300px; max-height:300px; overflow:auto;
+    background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+    box-shadow:0 18px 50px rgba(0,0,0,.20), 0 2px 10px rgba(0,0,0,.05);
+    padding:6px; display:none;
+  }
+  /* “Flechita” centrada */
+  .pop-panel::before{
+    content:""; position:absolute; top:-8px; left:50%; transform:translateX(-50%) rotate(45deg);
+    width:16px; height:16px;
+    background:#fff; border-left:1px solid #e5e7eb; border-top:1px solid #e5e7eb;
+  }
+
+  .pop-item{
+    width:100%; text-align:left; border:0; background:#fff; border-radius:10px;
+    padding:10px 12px; cursor:pointer; display:grid; grid-template-columns:auto 1fr;
+    align-items:center; gap:10px; position:relative;
+  }
+  .pop-item + .pop-item{ margin-top:4px; }
+  .pop-item:hover,
+  .pop-item:focus{ outline:none; background:#f7f8fb; }
+
+  /* Avatar con iniciales */
+  .pop-avatar{
+    width:36px; height:36px; border-radius:999px; display:grid; place-items:center;
+    font-weight:800; background:#e8fbef; color:#11693a; border:1px solid #b7f0c7;
+  }
+
+  .pop-lines{ display:flex; flex-direction:column; line-height:1.15; }
+  .pop-name{ font-weight:800; font-size:14px; color:#111827; }
+  .pop-meta{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; align-items:center; }
+
+  /* Chip de rol y RUT monoespaciado */
+  .chip{
+    font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px;
+    background:#f1f5f9; color:#475569; border:1px solid #e2e8f0;
+  }
+  .chip--admin{ background:#e8fbef; color:#11693a; border-color:#b7f0c7; }
+  .rut-mono{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    white-space:nowrap;
+  }
   </style>
+
+  <!-- Exponer los trabajadores como variable global para el popover -->
+  <script type="module">
+    import { users } from '../data/BDTrabajadores.js';
+    window.STOCKSEGURO_USERS = users;
+  </script>
 </head>
 <body>
   <div class="app-shell">
@@ -69,7 +127,12 @@
     <div class="toolbar">
       <button type="button" class="boton-exportar" onclick="exportarHistorial()">📤 Exportar historial a Excel</button>
       <button type="button" class="btn-clear" onclick="borrarHistorial()">Borrar historial</button>
-      <button type="button" class="boton-exportar" onclick="abrirModalTrabajador()">👤 Ver trabajador</button>
+
+      <!-- Contenedor del botón con popover de trabajadores -->
+      <span class="pop-trab">
+        <button id="btn-ver-trab" type="button" class="boton-exportar" onclick="toggleListaTrabajadores(event)">👤 Ver trabajador</button>
+        <div id="panel-trabajadores" class="pop-panel" aria-label="Lista de trabajadores"></div>
+      </span>
     </div>
 
     <section class="lista-row">
@@ -119,10 +182,12 @@
   </div>
 
   <script>
+    // ===== Dependencias disponibles en renderer =====
     const XLSX  = require('xlsx');
     const path  = require('path');
     const { dialog } = require('@electron/remote');
 
+    // ===== Guardas y acceso =====
     (function () {
       const u = JSON.parse(localStorage.getItem('usuarioLogueado') || 'null');
       if (!u) { window.location.href = 'login.html'; return; }
@@ -226,9 +291,12 @@
       guardarEventos([]); render();
     }
 
-    function abrirModalTrabajador(){
+    // ====== MODAL de trabajador (acepta usuario opcional) ======
+    function abrirModalTrabajador(usuarioSeleccionado){
       const modal = document.getElementById('modal-trabajador');
-      const u = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
+
+      // Si viene usuario elegido desde popover, úsalo; si no, usa el logueado.
+      const u = usuarioSeleccionado || JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
       const ultimo = localStorage.getItem('ultimoIngresoSistema');
 
       const avatar = document.getElementById('avatarHero');
@@ -249,13 +317,9 @@
 
       const emailEl = document.getElementById('m-email');
       const email = u.email || u.gmail || u.correo || '';
-      if (email) {
-        emailEl.textContent = email;
-        emailEl.href = `mailto:${email}`;
-      } else {
-        emailEl.textContent = '—';
-        emailEl.removeAttribute('href');
-      }
+      if (email) { emailEl.textContent = email; emailEl.href = `mailto:${email}`; }
+      else { emailEl.textContent = '—'; emailEl.removeAttribute('href'); }
+
       modal.style.display = 'grid';
     }
     function cerrarModalTrabajador(ev){
@@ -269,12 +333,111 @@
       pin.type = (pin.type === 'password') ? 'text' : 'password';
     }
 
+    // ====== LISTA emergente de trabajadores ======
+    function iniciales(nombre='') {
+      return String(nombre)
+        .split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('');
+    }
+
+    function construirListaTrabajadores() {
+      const list = Array.isArray(window.STOCKSEGURO_USERS) ? window.STOCKSEGURO_USERS : [];
+      const panel = document.getElementById('panel-trabajadores');
+      if (!panel) return;
+
+      if (!list.length) {
+        panel.innerHTML = `<div class="pop-item" style="cursor:default">No hay trabajadores registrados</div>`;
+        return;
+      }
+
+      panel.setAttribute('role','listbox');
+      panel.innerHTML = list.map((u,idx) => `
+        <button class="pop-item" role="option" data-index="${idx}" tabindex="-1"
+                onclick="seleccionarTrabajador('${u.rut.replace(/'/g,"&#39;")}')">
+          <span class="pop-avatar">${iniciales(u.nombre)}</span>
+          <span class="pop-lines">
+            <span class="pop-name">${u.nombre}</span>
+            <span class="pop-meta">
+              <span class="chip ${u.rol==='admin' ? 'chip--admin':''}">${u.rol || 'trabajador'}</span>
+              <span class="chip rut-mono">${u.rut}</span>
+            </span>
+          </span>
+        </button>
+      `).join('');
+    }
+
+    function toggleListaTrabajadores(ev){
+      const panel = document.getElementById('panel-trabajadores');
+      if (!panel) return;
+      if (panel.style.display === 'block') {
+        panel.style.display = 'none';
+        return;
+      }
+      construirListaTrabajadores();
+      panel.style.display = 'block';
+
+      // Enfocar primer ítem al abrir
+      const items = panel.querySelectorAll('.pop-item');
+      if (items.length) items[0].tabIndex = 0, items[0].focus();
+    }
+
+    function ocultarListaTrabajadores(){
+      const panel = document.getElementById('panel-trabajadores');
+      if (panel) panel.style.display = 'none';
+    }
+
+    // Cierra el popover si se hace click fuera
+    document.addEventListener('click', (e) => {
+      const cont = document.querySelector('.pop-trab');
+      if (!cont) return;
+      if (!cont.contains(e.target)) ocultarListaTrabajadores();
+    });
+
+    // Navegación por teclado dentro del popover
+    document.addEventListener('keydown', (e) => {
+      const panel = document.getElementById('panel-trabajadores');
+      if (!panel || panel.style.display !== 'block') return;
+
+      const items = Array.from(panel.querySelectorAll('.pop-item'));
+      if (!items.length) return;
+
+      const idx = items.findIndex(el => el === document.activeElement);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = items[(idx + 1 + items.length) % items.length];
+        next.tabIndex = 0; next.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = items[(idx - 1 + items.length) % items.length];
+        prev.tabIndex = 0; prev.focus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        document.activeElement?.click();
+      } else if (e.key === 'Escape') {
+        ocultarListaTrabajadores();
+        document.getElementById('btn-ver-trab')?.focus();
+      }
+    });
+
+    // Selección desde el popover → abrir modal con ese usuario
+    function seleccionarTrabajador(rut){
+      const lista = Array.isArray(window.STOCKSEGURO_USERS) ? window.STOCKSEGURO_USERS : [];
+      const u = lista.find(x => x.rut === rut);
+      ocultarListaTrabajadores();
+      if (!u) { alert('No se encontró el trabajador seleccionado.'); return; }
+      abrirModalTrabajador(u);
+    }
+
+    // ====== Exponer funciones al DOM ======
     window.exportarHistorial = exportarHistorial;
     window.borrarHistorial   = borrarHistorial;
     window.abrirModalTrabajador = abrirModalTrabajador;
     window.cerrarModalTrabajador = cerrarModalTrabajador;
     window.togglePin = togglePin;
 
+    window.toggleListaTrabajadores = toggleListaTrabajadores;
+    window.seleccionarTrabajador   = seleccionarTrabajador;
+
+    // Inicial
     render();
   </script>
 </body>
