@@ -14,10 +14,12 @@
   "devDependencies": {
     "electron": "^25.1.4",
     "electron-builder": "^24.13.3",
-    "electron-packager": "^17.1.2"
+    "electron-packager": "^17.1.2",
+    "electron-rebuild": "^3.2.9"
   },
   "dependencies": {
     "@electron/remote": "^2.1.2",
+    "better-sqlite3": "^12.5.0",
     "xlsx": "^0.18.5"
   },
   "build": {

@@ -1,3 +1,4 @@
+const { initDb } = require('./dbInit');
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const remoteMain = require('@electron/remote/main');
@@ -24,6 +25,7 @@ function createWindow () {
 }
 
 app.whenReady().then(() => {
+  initDb();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
